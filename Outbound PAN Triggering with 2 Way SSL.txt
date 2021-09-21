@@ -7,7 +7,7 @@
  req.setHeader('X-IBM-Client-Id' , '114b1d6c-c812-4e34-ad07-1345866a514d');
  req.setHeader('X-IBM-Client-Secret' , 'pT5kD4eD1fT4dA0sV3iK1sB8hP4oC0jP6qS4mF8uN6xM0tI7mD');
  req.setHeader('x-karza-key' , 'g7554og1grP55g9PEA3L');
- req.setClientCertificateName('Test_2WSSL');
+ //req.setClientCertificateName('Test_2WSSL');
  req.setBody('{"pan" : "algpg7296m","name" : "Vijay Kumar gundari", "dob" : "30/04/1982", "consent" : "Y"}');
  req.setTimeout(2 * 60 *1000);
  
