@@ -1,0 +1,173 @@
+public without sharing class DocumentCheckItemProvider {
+    @AuraEnabled(cacheable = true)
+    public static List < ContentVersion > fetchRecords(String relatedId) {
+
+        return [SELECT ContentDocumentId, ContentLocation, FileType,
+            FirstPublishLocationId, Id, Title, ContentSize, Case_Latitude__c, Case_Longitude__c,CreatedDate, FTNR_Reasons__c
+            FROM ContentVersion WHERE FirstPublishLocationId =: relatedId
+        ];
+    }
+
+    @AuraEnabled(cacheable = true)
+    public static String getDocumentCheckListItems(String relatedId,Boolean isrcuagency) {
+        System.debug('relatedId: '+relatedId);
+        //String actualRelatedId;
+        /*for(Case cs:  [select Id, Document_Checklist__c from Case where Id=: relatedId]){
+            actualRelatedId = cs.Document_Checklist__c;
+        }*/
+        //actualRelatedId = String.isBlank(actualRelatedId)? relatedId: actualRelatedId;
+         List<ContentDocumentLink> contentDocumentLink = [select LinkedEntityId,ContentDocumentId 
+            from ContentDocumentLink where LinkedEntityId =: relatedId];
+            Set<Id> setContentDocumentIds = new Set<Id>();
+            for(ContentDocumentLink conD:contentDocumentLink){
+                setContentDocumentIds.add(conD.ContentDocumentId);
+            }
+            System.debug('contentDocumentLink: '+contentDocumentLink);
+        List < ContentVersion > contentFilesDocCheckList = [SELECT ContentDocumentId, ContentLocation,
+            FileType, FirstPublishLocationId, Id, Title, ContentSize, FileExtension,FTR_FTNR__c,Reason__c,
+            Remarks__c, Case_Latitude__c, Case_Longitude__c, Verified_Not_Verified__c, Ops_Discripancy_Remarks__c,
+            Ops_Discripancy_Reason__c, CreatedDate, FTNR_Reasons__c
+            FROM ContentVersion WHERE ContentDocumentId IN: setContentDocumentIds
+        ];
+        List < Document_Checklist_Item__c > documentCheckList = new List < Document_Checklist_Item__c >();
+        documentCheckList = [select Id, Document_Name__c, Document_Type__c,Name
+            from Document_Checklist_Item__c
+            where Id =: relatedId
+        ];
+        System.debug('docListSize: '+documentCheckList); 
+        String documentName = documentCheckList.size()>0 ? documentCheckList[0].Name: 'Documents';
+        String documentType = documentCheckList.size()>0 ? 
+        (String.isBlank(documentCheckList[0].Document_Type__c)? '': documentCheckList[0].Document_Type__c)
+        :'';
+        DocumentCheckItemsWrapper docCheckListWrapper = new DocumentCheckItemsWrapper();
+        //docCheckListWrapper.isrcuagency = isrcuagency;
+        docCheckListWrapper = new DocumentCheckItemsWrapper(
+            contentFilesDocCheckList, documentName , documentType, isrcuagency);
+            System.debug('docCheckListWrapper: '+docCheckListWrapper);
+        return JSON.serialize(docCheckListWrapper);
+    }
+
+
+    @AuraEnabled
+    public static String getDocumentCheckListItemsByContentDocument(String relatedId,Boolean isrcuagency) {
+         System.debug('relatedId: '+relatedId);
+        //String actualRelatedId;
+        /*for(Case cs:  [select Id, Document_Checklist__c from Case where Id=: relatedId]){
+            actualRelatedId = cs.Document_Checklist__c;
+        }*/
+        //actualRelatedId = String.isBlank(actualRelatedId)? relatedId: actualRelatedId;
+        List<ContentDocumentLink> contentDocumentLink = [select LinkedEntityId,ContentDocumentId 
+        from ContentDocumentLink where LinkedEntityId =: relatedId];
+        Set<Id> setContentDocumentIds = new Set<Id>();
+        for(ContentDocumentLink conD:contentDocumentLink){
+            setContentDocumentIds.add(conD.ContentDocumentId);
+        }
+        System.debug('contentDocumentLink: '+contentDocumentLink);
+        List < ContentVersion > contentFilesDocCheckList = [SELECT ContentDocumentId, ContentLocation,
+            FileType, FirstPublishLocationId, Id, Title, ContentSize, FileExtension, FTR_FTNR__c, Reason__c,
+             Remarks__c, Case_Latitude__c, Case_Longitude__c, Verified_Not_Verified__c,
+             Ops_Discripancy_Remarks__c, Ops_Discripancy_Reason__c, CreatedDate, FTNR_Reasons__c
+            FROM ContentVersion WHERE ContentDocumentId IN: setContentDocumentIds
+        ];
+        List < Document_Checklist_Item__c > documentCheckList = new List < Document_Checklist_Item__c >();
+        documentCheckList = [select Id, Document_Name__c, Document_Type__c,Name
+            from Document_Checklist_Item__c
+            where Id =: relatedId
+        ];
+        System.debug('docListSize: '+documentCheckList); 
+        String documentName = documentCheckList.size()>0 ? documentCheckList[0].Name: 'Documents';
+        String documentType = documentCheckList.size()>0 ? documentCheckList[0].Document_Type__c: '';
+        //DocumentCheckItemsWrapper docCheckListWrapper = new DocumentCheckItemsWrapper();
+        //docCheckListWrapper.isrcuagency = isrcuagency;
+        DocumentCheckItemsWrapper docCheckListWrapper = new DocumentCheckItemsWrapper(
+            contentFilesDocCheckList, documentName , documentType, isrcuagency);
+            System.debug('docCheckListWrapper: '+docCheckListWrapper);
+        return JSON.serialize(docCheckListWrapper);
+    }
+
+    @AuraEnabled(cacheable = true)
+    public static String getAllDocumentCheckListItemsVariant(String relatedId,String caseType) {
+
+        if(caseType == 'CHILD' && String.isNotBlank(relatedId)){
+            List<Case> subCase = [select Id, ParentId from Case where Id=: relatedId];
+            relatedId = (subCase != null && subCase.size()> 0 ) ? subCase[0].ParentId : relatedId;
+        }
+        return getAllDocumentCheckListItems(relatedId);
+    }
+
+    @AuraEnabled(cacheable = true)
+    public static String getAllDocumentCheckListItems(String relatedId) {
+        Set<Id> setDocumentChecklistIds = new Set<Id>();
+        for(Case subCase: [select Id,Document_Checklist__c from Case 
+        where RecordType.Name ='RCU Document Check' and ParentId =:relatedId ORDER by Subject]){
+            setDocumentChecklistIds.add(subCase.Document_Checklist__c);
+        }
+        Map<Id,Id> mapContentDocumentVsLinkedEntityId = new Map<id,id>();
+        //query all contentdocList for all documentchecklist
+        for(ContentDocumentLink contentDocLink:  [select LinkedEntityId,ContentDocumentId 
+        from ContentDocumentLink where LinkedEntityId IN :setDocumentChecklistIds]){
+            mapContentDocumentVsLinkedEntityId.put(contentDocLink.ContentDocumentId,contentDocLink.LinkedEntityId);
+        }
+        //query all document checklist for doc name etc property
+        Map<Id,Document_Checklist_Item__c> mapIdVsDocCheckListItem = new Map<Id,Document_Checklist_Item__c>(
+            [select Id, Document_Name__c, Document_Type__c, Name
+            from Document_Checklist_Item__c
+            where Id IN : setDocumentChecklistIds
+            ORDER BY Document_Name__c]
+        );
+        Map<Id,List<ContentVersion>> mapDocumentCheckListVsDocuments = new Map<Id,List<ContentVersion>>();
+        //query all content versions for all doc check list items
+        for(ContentVersion conVer: [SELECT ContentDocumentId, ContentLocation,
+        FileType, FirstPublishLocationId, Id, Title, ContentSize, FileExtension, FTR_FTNR__c, Reason__c, 
+        Remarks__c,Case_Latitude__c, Case_Longitude__c, Verified_Not_Verified__c,
+        Ops_Discripancy_Reason__c, Ops_Discripancy_Remarks__c, CreatedDate, FTNR_Reasons__c
+        FROM ContentVersion WHERE ContentDocumentId IN: mapContentDocumentVsLinkedEntityId.keySet()]){
+            //create a map of documentListItemVsListofContentVersion
+            Id linkedDocCheckListItem = mapContentDocumentVsLinkedEntityId.get(conVer.ContentDocumentId);
+            if(!mapDocumentCheckListVsDocuments.containsKey(linkedDocCheckListItem)){
+                mapDocumentCheckListVsDocuments.put(linkedDocCheckListItem,new List<ContentVersion>{conVer}); 
+            }else if(mapDocumentCheckListVsDocuments.containsKey(linkedDocCheckListItem)){
+                mapDocumentCheckListVsDocuments.get(linkedDocCheckListItem).add(conVer);
+            }
+        }
+        //loop through mapDocumentCheckListVsDocuments to create list of documentWrapper
+        List<DocumentCheckItemsWrapper> docCheckListWrapperList = new List<DocumentCheckItemsWrapper>();
+        for(Id documentCheckListItem: mapDocumentCheckListVsDocuments.keySet()){
+            String documentName = mapIdVsDocCheckListItem.get(documentCheckListItem).Name;
+            String documentType = mapIdVsDocCheckListItem.get(documentCheckListItem).Document_Type__c;
+            docCheckListWrapperList.add(new DocumentCheckItemsWrapper(
+                mapDocumentCheckListVsDocuments.get(documentCheckListItem), documentName, documentType,false));
+        }
+        docCheckListWrapperList.sort();
+        System.debug('map: '+JSON.serialize(docCheckListWrapperList));
+        return JSON.serialize(docCheckListWrapperList);
+    }
+    //Added by Amol Tandon for Watermarking
+    @AuraEnabled(cacheable = true)
+    public static String getImageBase64Test(String versionId) 
+    {
+      contentversion c = [select versionData, FileType from ContentVersion where Id =: versionId WITH SECURITY_ENFORCED];
+      return 'data:'+ c.FileType + ';base64,' + +EncodingUtil.base64Encode(c.versionData);        
+    }
+
+    @AuraEnabled()  
+    public static String saveWaterMarkImageBase64(String contentDocId, String saveWaterMarkImageBase64)
+    {
+        /*if(contentDocId == '' || contentDocId == null)
+        {
+            contentDocId = '06971000000NYLxAAO';
+        }*/
+    ContentVersion contentVersion1 = new ContentVersion(
+                Title='SampleTitle', 
+                PathOnClient ='SampleTitle.jpg',
+                VersionData = EncodingUtil.base64Decode(saveWaterMarkImageBase64), 
+                origin = 'H',
+                ContentDocumentId = contentDocId
+
+    );
+    insert contentVersion1;
+    return('Image Saved Successfully');
+    }
+
+    //End of Watermarking Code
+}

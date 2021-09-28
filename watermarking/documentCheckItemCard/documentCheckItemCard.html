@@ -1,0 +1,79 @@
+<template>
+    <div class="" style="border: 1px solid #ccc; border-radius:5px; padding: 5px;">
+      <div class="slds-scrollable_y" style="height:24rem;width:54rem">
+        <lightning-card variant="narrow" class="slds-truncate">
+            <div class="slds-grid slds-wrap slds-p-horizontal_small" style="display: inline">
+                <div class="slds-col slds-small-size--1-of-1 slds-grid slds-truncate_container_75"
+                    style="display: -webkit-inline-box">
+                    <div style="width: 70%; overflow: hidden;">
+                        <p class="slds-p-around_small" style="padding-right:0px;">{doc.fileName}</p>
+                        <p class="slds-p-around_small" style="padding-right:0px;">{doc.docCreatedDate}</p>
+                    </div>
+                    <lightning-button data-id={doc.downloadUrl} label="" value="file download" onclick={fileDownload}
+                        variant="base" icon-name="utility:download" icon-position="right" icon-size="large"
+                        slot="actions">
+                    </lightning-button>
+                    <lightning-button data-id={doc.downloadUrl} label="" value="rotate file" onclick={rotateFile}
+                        variant="base" icon-name="utility:rotate" icon-position="right" class="slds-button__icon_large"
+                        slot="actions" title="Rotate">
+                    </lightning-button>
+                    <lightning-button data-id={doc.downloadUrl} label="" value="rotate file" onclick={resetFile}
+                        variant="base" icon-name="utility:refresh" icon-position="right" class="slds-button__icon_large"
+                        slot="actions" title="Reset">
+                    </lightning-button>
+                    <lightning-button data-id={doc.contentDocumentId} label="" value="zoom in" onclick={zoominFile}
+                        variant="base" icon-name="utility:zoomin" icon-position="right" class="slds-button__icon_large"
+                        slot="actions" title="Zoom In">
+                    </lightning-button>
+                    <lightning-button data-id={doc.contentDocumentId} label="" value="zoom out" onclick={zoomoutFile}
+                        variant="base" icon-name="utility:zoomout" icon-position="right" class="slds-button__icon_large"
+                        slot="actions" title="Zoom Out">
+                    </lightning-button>
+                    <!--Added by Amol for Watermark-->
+                    <lightning-button data-id={doc.downloadUrl} label="" value="rotate file" onclick={watermark1}
+                        variant="base" icon-name="utility:refresh" icon-position="right" class="slds-button__icon_large"
+                        slot="actions" title="Reset">
+                    </lightning-button>
+                </div>
+                <div class="slds-p-horizontal_small" data-id={doc.actualContentIdToDisplay} onclick={filePreview}>
+                    <template if:true={doc.isImageType}>
+                        <img src={doc.fileUrl} alt='No Preview available' 
+                            style="height:200px; width: 350px; cursor:pointer; ">
+                    </template>
+                    <template if:false={doc.isImageType}>
+                        <template if:true={isIframe}>                          
+                           <!-- <object
+                               data={iFrameData}                        
+                               width="100%"
+                               style="height: 500px; border: 1px solid grey;" 
+                               type="application/pdf"
+                            > 
+                           </object> 
+                        -->
+                           <embed
+                           src={iFrameData}
+                            width="100%" 
+                            height="500px"/>
+                             <!--<iframe                   
+                                 src={iFrameData}
+                                 width="100%" 
+                                 height="250px"> -->
+                            
+                        </template>
+                        <template if:false={isIframe}>
+                           <img src={altImagePic} alt='No Preview available' style="height:100px;cursor:pointer;">                       
+                        </template>
+                        
+                    </template>
+                </div>
+            </div>
+            <!--Added by Amol for Watermark-->
+            <canvas id="canvas" width=100 height=100 style="border:1px solid #000000;"></canvas>
+            <h2>Watermarked...</h2>
+            <div id="watermark123" class="watermark">
+
+            </div>
+        </lightning-card>
+      </div>
+    </div>
+</template>
