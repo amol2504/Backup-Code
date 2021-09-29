@@ -1,0 +1,6 @@
+@AuraEnabled(cacheable = true)
+    public static String getImageBase64Test(String versionId) 
+    {
+      contentversion c = [select versionData, FileType from ContentVersion where Id =: versionId WITH SECURITY_ENFORCED];
+      return 'data:'+ c.FileType + ';base64,' + c.versionData;        
+    }

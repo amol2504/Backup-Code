@@ -1,0 +1,16 @@
+initiator2@persistent.com
+yes@12345
+
+5007100000152n1AAA
+
+
+
+https://salesforce.stackexchange.com/questions/180211/save-base64-data-as-attachment
+
+https://yesbank6--dev.my.salesforce.com/sfc/p/710000000SCP/a/710000000bAr/Xo83ibGZ.GM_J6VCu6WXloBgkkcfgVCtBgLvAT00K8I
+
+
+https://yesbank6--dev.lightning.force.com
+
+https://yesbank6--dev.lightning.force.com/sfc/servlet.shepherd/version/download/06871000000NVvxAAG
+https://*.salesforce.com/sfc/servlet.shepherd/version/download/06871000000NVvxAAG
