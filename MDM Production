@@ -14,7 +14,7 @@
 
 res = Http.send(req);
 system.debug('reqHeader@@@@'+ req.getHeader('X-IBM-Client-Id'));
-system.debug('reqHeader@@@@'+ req.getHeader('x-karza-key'));
+//system.debug('reqHeader@@@@'+ req.getHeader('x-karza-key'));
 system.debug('reqHeader@@@@'+ req.getHeader('Authorization: Basic'));
 system.debug('reqHeader@@@@'+ req.getHeader('Content-Type'));
 system.debug('reqHeader@@@@'+ req.getHeader('Connection'));
