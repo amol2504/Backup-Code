@@ -1,0 +1,39 @@
+ Http http = new Http();
+ HttpRequest req = new HttpRequest();
+ HTTPResponse res = new HTTPResponse();
+ req.setEndpoint('callout:' + 'MDMSearch');
+ req.setMethod('POST');
+ req.setHeader('Content-Type' , 'text/xml');
+ req.setHeader('X-IBM-Client-Id' , 'edbf8835-2617-427c-b7d3-07dcf4816426');
+ req.setHeader('X-IBM-Client-Secret' , 'jY6rV8kC7mL3mS4pU7fO7pI8jO7gE5jK1sS5dA2uY7tJ5kM0hE');
+ req.setHeader('x-karza-key' , 'g7554og1grP55g9PEA3L');
+ //req.setClientCertificateName('Test_2WSSL');
+ req.setBody('<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:siperian.api"><soapenv:Header/><soapenv:Body><urn:searchQuery><urn:username>admin</urn:username><urn:password><urn:password>admin</urn:password><urn:encrypted>false</urn:encrypted></urn:password><urn:orsId>mdmanlys-CMX_ORS</urn:orsId><urn:siperianObjectUid>PACKAGE.PKG_CUST_IDENTITY_SRCH</urn:siperianObjectUid><urn:recordsToReturn>1000</urn:recordsToReturn><urn:returnTotal>false</urn:returnTotal><urn:filterCriteria>(MOBILE_NUMBER=? OR PAN_NUMBER=? OR FCR_CUST_ID=?)</urn:filterCriteria><urn:filterParameter><urn:stringValue></urn:stringValue> </urn:filterParameter> <urn:filterParameter><urn:stringValue></urn:stringValue> </urn:filterParameter> <urn:filterParameter> <urn:stringValue>10830</urn:stringValue></urn:filterParameter><urn:disablePaging>true</urn:disablePaging><urn:removeDuplicates>true</urn:removeDuplicates></urn:searchQuery></soapenv:Body></soapenv:Envelope>');
+ req.setTimeout(2 * 60 *1000);
+ 
+
+res = Http.send(req);
+system.debug('reqHeader@@@@'+ req.getHeader('X-IBM-Client-Id'));
+system.debug('reqHeader@@@@'+ req.getHeader('x-karza-key'));
+system.debug('reqHeader@@@@'+ req.getHeader('Authorization: Basic'));
+system.debug('reqHeader@@@@'+ req.getHeader('Content-Type'));
+system.debug('reqHeader@@@@'+ req.getHeader('Connection'));
+
+
+system.debug('reqBody@@@@'+ req.getBody());
+system.debug('resBody@@@@'+ res.getBody());
+
+ //httpresponse res = http.send(req);
+
+//get the list of header names (keys)
+string[] headerkeys = res.getHeaderKeys();
+
+//create an object to store your header key-value pairs
+Map<string, string> headers = new map<string, string>();
+
+//iterate through they keys, and populate your map
+for(string s : headerkeys)
+{
+   headers.put(s,res.getHeader(s));
+   system.debug('header: ' + s + ' value: ' + res.getHeader(s));
+}
